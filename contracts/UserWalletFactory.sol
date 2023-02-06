@@ -2,31 +2,25 @@
 pragma solidity 0.8.17;
 
 contract UserWalletFactory {
-    error CallerIsNotSamoi(); 
     error OutOfAmount();
 
-    event NewWalletAddress(address[]);
+    event NewWalletAddress(address[] indexed addr);
 
     address public userWalletImplementation;
-    address public owner;
 
     constructor(address _userWalletImplementation) {
         userWalletImplementation = _userWalletImplementation;
-        owner = msg.sender;
     }
 
     function setImplementation(address _userWalletImplementation) external {
-        if (msg.sender != owner) {
-            revert CallerIsNotSamoi();
-        }
         userWalletImplementation = _userWalletImplementation;
     }
 
-    function createUserWallet(uint amount) external returns (address[] memory) {
-        if (amount > 20) {
+    function createUserWallet(uint256 amount) external returns (address[] memory) {
+        if (amount > 50) {
             revert OutOfAmount();
         }
-
+        
         address[] memory addr = new address[](amount);
         for (uint i; i < amount;) {
             addr[i] = _createUserWallet(userWalletImplementation);

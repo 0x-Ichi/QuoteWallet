@@ -27,14 +27,7 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
     // Used as the URI for all token types by relying on ID substitution, e.g. https://token-cdn-domain/{id}.json
-    string private _uri;
-
-    /**
-     * @dev See {_setURI}.
-     */
-    constructor(string memory uri_) {
-        _setURI(uri_);
-    }
+    mapping(uint256 => string) private _uri;
 
     /**
      * @dev See {IERC165-supportsInterface}.
@@ -56,8 +49,8 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
      * Clients calling this function must replace the `\{id\}` substring with the
      * actual token type ID.
      */
-    function uri(uint256) public view virtual override returns (string memory) {
-        return _uri;
+    function uri(uint256 id) public view virtual override returns (string memory) {
+        return _uri[id];
     }
 
     /**
@@ -245,8 +238,8 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
      * Because these URIs cannot be meaningfully represented by the {URI} event,
      * this function emits no events.
      */
-    function _setURI(string memory newuri) internal virtual {
-        _uri = newuri;
+    function _setURI(uint256 id, string memory newuri) internal virtual {
+        _uri[id] = newuri; 
     }
 
     /**
@@ -496,8 +489,26 @@ contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI {
     }
 }
 
-contract Quote is ERC1155 {
-    constructor() ERC1155("Quote") {
+contract QuoteNFT is ERC1155 {
+    error CallerIsNotSamoi();
+
+    address public constant samoiMainWallet = 0xc0B493BAC89DD41B8c6F9da862895145cFCF7f6A; 
+
+    constructor() {
         _mint(msg.sender, 1, 100, "");
+    }
+
+    function setURI(uint id, string calldata uri_) external {
+        if (msg.sender != samoiMainWallet) {
+            revert CallerIsNotSamoi();
+        }
+        _setURI(id, uri_);
+    }
+
+    function mint(uint id, uint amount) external {
+        if (msg.sender != samoiMainWallet) {
+            revert CallerIsNotSamoi();
+        }
+        _mint(samoiMainWallet, id, amount, "");
     }
 }

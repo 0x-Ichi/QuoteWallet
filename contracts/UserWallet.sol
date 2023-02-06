@@ -1,50 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-interface IERC721 {
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) external;
-}
-
-interface IERC721Receiver {
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external returns (bytes4);
-}
-
-interface IERC1155Receiver {
-    function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external returns (bytes4);
-
-    function onERC1155BatchReceived(
-        address operator,
-        address from,
-        uint256[] calldata ids,
-        uint256[] calldata values,
-        bytes calldata data
-    ) external returns (bytes4);
-}
-
-interface IERC1155 {
-    function safeTransferFrom(
-        address from, 
-        address to, 
-        uint256 id, 
-        uint256 amount, 
-        bytes calldata data
-    ) external;
-}
+import './IERC721.sol';
+import './IERC721Receiver.sol';
+import './IERC1155Receiver.sol';
+import './IERC1155.sol';
+import './IERC20.sol';
 
 contract UserWallet {
     error CallerIsNotSamoi();
@@ -59,7 +20,7 @@ contract UserWallet {
         uint256 value;
     }
 
-    address private constant samoiMainWallet = 0x81EE475E758422ea7CB3e5144e96d0520ddF0Bf7; 
+    address private constant samoiMainWallet = 0xc0B493BAC89DD41B8c6F9da862895145cFCF7f6A; 
     
     function onERC721Received(
         address operator,
@@ -90,25 +51,27 @@ contract UserWallet {
         return IERC1155Receiver.onERC1155BatchReceived.selector;
     }
 
-    function transfer(TransactionInfo calldata transactionInfo) external {
+    function transfer(TransactionInfo calldata txInfo) external {
         if (msg.sender != samoiMainWallet) {
             revert CallerIsNotSamoi();
         }
 
-        if (transactionInfo.protocol == 721) {
-            IERC721(transactionInfo.target).safeTransferFrom(
+        if (txInfo.protocol == 721) {
+            IERC721(txInfo.target).safeTransferFrom(
                 address(this),
-                transactionInfo.to,
-                transactionInfo.tokenId
+                txInfo.to,
+                txInfo.tokenId
             );
-        } else if (transactionInfo.protocol == 1155) {
-            IERC1155(transactionInfo.target).safeTransferFrom(
+        } else if (txInfo.protocol == 1155) {
+            IERC1155(txInfo.target).safeTransferFrom(
                 address(this),
-                transactionInfo.to,
-                transactionInfo.id,
-                transactionInfo.value,
+                txInfo.to,
+                txInfo.id,
+                txInfo.value,
                 ""
-            );           
+            );
+        } else if (txInfo.protocol == 20) {
+            IERC20(txInfo.target).transfer(txInfo.to, txInfo.value);
         } else {
             revert InvalidProtocol();
         }
