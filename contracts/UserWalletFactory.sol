@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 contract UserWalletFactory {
     error OutOfAmount();
 
-    event NewWalletAddress(address[] indexed addr);
+    event WalletAddress(address indexed addr);
 
     address public userWalletImplementation;
 
@@ -24,12 +24,13 @@ contract UserWalletFactory {
         address[] memory addr = new address[](amount);
         for (uint i; i < amount;) {
             addr[i] = _createUserWallet(userWalletImplementation);
+            emit WalletAddress(addr[i]);
+            
             unchecked {
                 ++i;
             }
         }
 
-        emit NewWalletAddress(addr);
         return addr;
     }
 
