@@ -104,7 +104,7 @@ contract SamoiMainWallet {
         return IERC1155Receiver.onERC1155BatchReceived.selector;
     }
 
-    function transfer(
+    function callTransfer(
         address walletAddress,
         TransactionInfo calldata txInfo
     ) external onlyOwner {
